@@ -27,26 +27,11 @@ case "$NOTIF_TYPE" in
   *)                 TITLE="Claude Code" ;;
 esac
 
-# Build relative path from home directory for use as subtitle
+# Build relative path from home directory for use as notification title
 REL_PATH="${PWD/#$HOME/~}"
 
-# Write the AppleScript to a temp file to avoid quoting issues in -execute
-# Use PID-based naming — macOS mktemp doesn't support suffixes after X's
-FOCUS_SCRIPT="/tmp/claude-focus-$$.scpt"
-cat > "$FOCUS_SCRIPT" <<APPLESCRIPT
-tell application "Terminal"
-    activate
-    repeat with w in every window
-        repeat with t in every tab of w
-            if tty of t contains "${MY_TTY}" then
-                set selected tab of w to t
-                set index of w to 1
-                return
-            end if
-        end repeat
-    end repeat
-end tell
-APPLESCRIPT
+# Permanent focus script — TTY is passed as an argument at runtime
+FOCUS_SCRIPT="$(dirname "$0")/focus-terminal.scpt"
 
 # Skip notification if this Terminal tab is already the active, focused window
 IS_ACTIVE=$(osascript 2>/dev/null <<APPLESCRIPT
@@ -73,12 +58,9 @@ if command -v terminal-notifier &>/dev/null; then
         -message "$TITLE" \
         -sound "default" \
         -activate "com.apple.Terminal" \
-        -execute "osascript ${FOCUS_SCRIPT}"
-    # Clean up temp file after a generous window for clicking
-    (sleep 120 && rm -f "$FOCUS_SCRIPT") &
+        -execute "osascript ${FOCUS_SCRIPT} ${MY_TTY}"
 else
     # No terminal-notifier: show system notification and immediately focus
     osascript -e "display notification \"$TITLE\" with title \"$REL_PATH\" sound name \"Ping\""
-    osascript "$FOCUS_SCRIPT"
-    rm -f "$FOCUS_SCRIPT"
+    osascript "$FOCUS_SCRIPT" "$MY_TTY"
 fi

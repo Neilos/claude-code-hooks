@@ -38,11 +38,12 @@ brew install terminal-notifier
 
 Without `terminal-notifier`, notifications will still fire via `osascript` but clicking them won't focus the Terminal window — it will jump to front immediately when the hook fires instead.
 
-### 2. Install the hook script
+### 2. Install the hook scripts
 
 ```bash
 mkdir -p ~/.claude/hooks
 curl -o ~/.claude/hooks/notify.sh https://raw.githubusercontent.com/Neilos/claude-code-hooks/main/hooks/notify.sh
+curl -o ~/.claude/hooks/focus-terminal.scpt https://raw.githubusercontent.com/Neilos/claude-code-hooks/main/hooks/focus-terminal.scpt
 chmod +x ~/.claude/hooks/notify.sh
 ```
 
@@ -94,10 +95,9 @@ When a `Notification` event fires, Claude Code runs the hook script and passes a
 1. Walks up the process tree to find the TTY of the parent Claude session
 2. Checks if that Terminal tab is already the active, focused window — if so, exits silently
 3. Resolves the working directory relative to `$HOME` for the notification title
-4. Writes a temporary AppleScript that finds and focuses the Terminal window matching that TTY
-5. Calls `terminal-notifier` with the `-execute` flag so clicking the banner runs the AppleScript
+4. Calls `terminal-notifier` with `-execute` pointing to `focus-terminal.scpt`, passing the TTY as an argument
 
-The temp AppleScript file is cleaned up automatically after 2 minutes.
+`focus-terminal.scpt` is a permanent AppleScript that accepts a TTY argument and focuses the matching Terminal window. Because the TTY is passed at click-time rather than baked into a temp file, clicking the notification will focus the correct window no matter when you click it.
 
 ---
 
