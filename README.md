@@ -6,12 +6,21 @@ A collection of hooks for [Claude Code](https://claude.ai/code) — the CLI for 
 
 ### `hooks/notify.sh` — Desktop Notifications
 
-Sends a macOS desktop notification whenever Claude needs your attention, with a title that reflects the type of notification. Clicking the notification banner focuses the exact Terminal window and tab running that Claude session.
+Sends a macOS desktop notification whenever Claude needs your attention. Clicking the notification banner focuses the exact Terminal window and tab running that Claude session.
+
+The notification will not fire if that Terminal tab is already the active, focused window.
+
+**Notification format:**
+
+| Field | Content |
+|-------|---------|
+| Title | Working directory relative to home (e.g. `~/code/my-project`) |
+| Message | Notification type (e.g. `Claude Code — Waiting for Input`) |
 
 **Notification types:**
 
-| Event | Title |
-|-------|-------|
+| Event | Message |
+|-------|---------|
 | Waiting for input | Claude Code — Waiting for Input |
 | Needs permission | Claude Code — Needs Permission |
 | Authenticated | Claude Code — Authenticated |
@@ -83,9 +92,10 @@ You should see a notification banner. Clicking it will focus the Terminal window
 When a `Notification` event fires, Claude Code runs the hook script and passes a JSON payload on stdin. The script:
 
 1. Walks up the process tree to find the TTY of the parent Claude session
-2. Parses the notification message and type from stdin JSON
-3. Writes a temporary AppleScript that finds and focuses the Terminal window matching that TTY
-4. Calls `terminal-notifier` with the `-execute` flag so clicking the banner runs the AppleScript
+2. Checks if that Terminal tab is already the active, focused window — if so, exits silently
+3. Resolves the working directory relative to `$HOME` for the notification title
+4. Writes a temporary AppleScript that finds and focuses the Terminal window matching that TTY
+5. Calls `terminal-notifier` with the `-execute` flag so clicking the banner runs the AppleScript
 
 The temp AppleScript file is cleaned up automatically after 2 minutes.
 

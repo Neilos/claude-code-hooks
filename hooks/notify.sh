@@ -27,6 +27,9 @@ case "$NOTIF_TYPE" in
   *)                 TITLE="Claude Code" ;;
 esac
 
+# Build relative path from home directory for use as subtitle
+REL_PATH="${PWD/#$HOME/~}"
+
 # Write the AppleScript to a temp file to avoid quoting issues in -execute
 # Use PID-based naming — macOS mktemp doesn't support suffixes after X's
 FOCUS_SCRIPT="/tmp/claude-focus-$$.scpt"
@@ -66,8 +69,8 @@ APPLESCRIPT
 if command -v terminal-notifier &>/dev/null; then
     # Click the notification banner → focus the exact Terminal tab
     terminal-notifier \
-        -title "$TITLE" \
-        -message "$MESSAGE" \
+        -title "$REL_PATH" \
+        -message "$TITLE" \
         -sound "default" \
         -activate "com.apple.Terminal" \
         -execute "osascript ${FOCUS_SCRIPT}"
@@ -75,7 +78,7 @@ if command -v terminal-notifier &>/dev/null; then
     (sleep 120 && rm -f "$FOCUS_SCRIPT") &
 else
     # No terminal-notifier: show system notification and immediately focus
-    osascript -e "display notification \"$MESSAGE\" with title \"$TITLE\" sound name \"Ping\""
+    osascript -e "display notification \"$TITLE\" with title \"$REL_PATH\" sound name \"Ping\""
     osascript "$FOCUS_SCRIPT"
     rm -f "$FOCUS_SCRIPT"
 fi
