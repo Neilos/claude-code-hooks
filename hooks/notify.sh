@@ -45,6 +45,24 @@ tell application "Terminal"
 end tell
 APPLESCRIPT
 
+# Skip notification if this Terminal tab is already the active, focused window
+IS_ACTIVE=$(osascript 2>/dev/null <<APPLESCRIPT
+tell application "System Events"
+    set frontApp to name of first application process whose frontmost is true
+end tell
+if frontApp is "Terminal" then
+    tell application "Terminal"
+        set frontTab to selected tab of front window
+        if tty of frontTab contains "${MY_TTY}" then
+            return "active"
+        end if
+    end tell
+end if
+return "inactive"
+APPLESCRIPT
+)
+[[ "$IS_ACTIVE" == "active" ]] && exit 0
+
 if command -v terminal-notifier &>/dev/null; then
     # Click the notification banner → focus the exact Terminal tab
     terminal-notifier \
