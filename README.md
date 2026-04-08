@@ -6,9 +6,9 @@ A collection of hooks for [Claude Code](https://claude.ai/code) — the CLI for 
 
 ### `hooks/notify.sh` — Desktop Notifications
 
-Sends a macOS desktop notification whenever Claude needs your attention. Clicking the notification banner focuses the exact Terminal window and tab running that Claude session.
+Sends a macOS desktop notification whenever Claude needs your attention. Clicking the notification banner focuses the exact iTerm2 window and tab running that Claude session.
 
-The notification will not fire if that Terminal tab is already the active, focused window.
+The notification will not fire if that iTerm2 tab is already the active, focused window.
 
 **Notification format:**
 
@@ -36,7 +36,7 @@ The notification will not fire if that Terminal tab is already the active, focus
 brew install terminal-notifier
 ```
 
-Without `terminal-notifier`, notifications will still fire via `osascript` but clicking them won't focus the Terminal window — it will jump to front immediately when the hook fires instead.
+Without `terminal-notifier`, notifications will still fire via `osascript` but clicking them won't focus the iTerm2 window — it will jump to front immediately when the hook fires instead.
 
 ### 2. Install the hook scripts
 
@@ -71,20 +71,25 @@ Add the following to `~/.claude/settings.json` (create it if it doesn't exist):
 
 Replace `YOUR_USERNAME` with your macOS username. Use an absolute path — tilde (`~`) is not expanded in Claude Code settings.
 
-### 4. Enable notifications for terminal-notifier
+### 4. Enable iTerm2 AppleScript access
+
+1. Open **iTerm2 → Settings → General → Magic**
+2. Check **Enable Python API** (this also enables the AppleScript bridge used by the focus script)
+
+### 5. Enable notifications for terminal-notifier
 
 1. Open **System Settings → Notifications**
 2. Find **terminal-notifier** in the list
 3. Set Alert Style to **Persistent** (stays until dismissed) or **Temporary** (auto-dismisses)
 4. Enable **Desktop**, **Notification Centre**, and **Play sound**
 
-### 5. Test it
+### 6. Test it
 
 ```bash
 echo '{"message": "Test notification", "type": "idle_prompt"}' | ~/.claude/hooks/notify.sh
 ```
 
-You should see a notification banner. Clicking it will focus the Terminal window you ran the command from.
+You should see a notification banner. Clicking it will focus the iTerm2 window you ran the command from.
 
 ---
 
@@ -93,16 +98,17 @@ You should see a notification banner. Clicking it will focus the Terminal window
 When a `Notification` event fires, Claude Code runs the hook script and passes a JSON payload on stdin. The script:
 
 1. Walks up the process tree to find the TTY of the parent Claude session
-2. Checks if that Terminal tab is already the active, focused window — if so, exits silently
+2. Checks if that iTerm2 tab is already the active, focused window — if so, exits silently
 3. Resolves the working directory relative to `$HOME` for the notification title
 4. Calls `terminal-notifier` with `-execute` pointing to `focus-terminal.scpt`, passing the TTY as an argument
 
-`focus-terminal.scpt` is a permanent AppleScript that accepts a TTY argument and focuses the matching Terminal window. Because the TTY is passed at click-time rather than baked into a temp file, clicking the notification will focus the correct window no matter when you click it.
+`focus-terminal.scpt` is a permanent AppleScript that accepts a TTY argument and focuses the matching iTerm2 window and tab. Because the TTY is passed at click-time rather than baked into a temp file, clicking the notification will focus the correct window no matter when you click it.
 
 ---
 
 ## Compatibility
 
-- macOS only (uses AppleScript and Terminal.app)
+- macOS only (uses AppleScript and iTerm2)
+- Requires [iTerm2](https://iterm2.com) with AppleScript access enabled
 - Requires [Claude Code](https://claude.ai/code)
 - Requires [Homebrew](https://brew.sh) for `terminal-notifier`

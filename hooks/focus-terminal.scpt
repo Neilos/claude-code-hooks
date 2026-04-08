@@ -1,14 +1,16 @@
 on run argv
     set myTTY to item 1 of argv
-    tell application "Terminal"
+    tell application "iTerm2"
         activate
         repeat with w in every window
             repeat with t in every tab of w
-                if tty of t contains myTTY then
-                    set selected tab of w to t
-                    set index of w to 1
-                    return
-                end if
+                repeat with s in every session of t
+                    if tty of s contains myTTY then
+                        select t
+                        set index of w to 1
+                        return
+                    end if
+                end repeat
             end repeat
         end repeat
     end tell

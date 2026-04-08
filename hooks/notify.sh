@@ -1,11 +1,11 @@
 #!/bin/bash
 # Claude Code notification hook
-# Sends a desktop notification and focuses the Terminal window running this Claude session.
+# Sends a desktop notification and focuses the iTerm2 window running this Claude session.
 #
 # With terminal-notifier (brew install terminal-notifier):
-#   Clicking the notification focuses the right Terminal window.
+#   Clicking the notification focuses the right iTerm2 tab.
 # Without terminal-notifier:
-#   Notification fires and the Terminal window is immediately brought to front.
+#   Notification fires and the iTerm2 window is immediately brought to front.
 
 # Find the TTY of the Claude session by walking up the process tree.
 # When hooks run, stdin is piped so `tty` returns "not a tty" — instead
@@ -33,15 +33,15 @@ REL_PATH="${PWD/#$HOME/~}"
 # Permanent focus script — TTY is passed as an argument at runtime
 FOCUS_SCRIPT="$(dirname "$0")/focus-terminal.scpt"
 
-# Skip notification if this Terminal tab is already the active, focused window
+# Skip notification if this iTerm2 tab is already the active, focused window
 IS_ACTIVE=$(osascript 2>/dev/null <<APPLESCRIPT
 tell application "System Events"
     set frontApp to name of first application process whose frontmost is true
 end tell
-if frontApp is "Terminal" then
-    tell application "Terminal"
-        set frontTab to selected tab of front window
-        if tty of frontTab contains "${MY_TTY}" then
+if frontApp is "iTerm2" then
+    tell application "iTerm2"
+        set currentSession to current session of current tab of current window
+        if tty of currentSession contains "${MY_TTY}" then
             return "active"
         end if
     end tell
@@ -57,7 +57,7 @@ if command -v terminal-notifier &>/dev/null; then
         -title "$REL_PATH" \
         -message "$TITLE" \
         -sound "default" \
-        -activate "com.apple.Terminal" \
+        -activate "com.googlecode.iterm2" \
         -execute "osascript ${FOCUS_SCRIPT} ${MY_TTY}"
 else
     # No terminal-notifier: show system notification and immediately focus
