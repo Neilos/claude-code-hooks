@@ -1,3 +1,7 @@
+**EDIT: I NO LONGER USE THIS AND WON'T BE MAINTAINING IT. THERE ARE BETTER ALTERNATIVES NOWAADAYS.**
+
+**I USE [THIS](https://iterm2.com/claude-code-integration.html)** INSTEAD
+
 # Claude Code Hooks
 
 A collection of hooks for [Claude Code](https://claude.ai/code) — the CLI for Claude by Anthropic.
